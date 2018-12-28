@@ -21,8 +21,8 @@ bl_info = {
     "author": "Vilem Duha",
     "version": (1, 0),
     "blender": (2, 79, 0),
-    "location": "View3D > Mesh > Optimize loops",
-    "description": "Optimize meshes by removing loops",
+    "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
+    "description": "Optimize meshes by removing loops with angle threshold",
     "warning": "",
     "wiki_url": "",
     "category": "Add Mesh",
@@ -251,9 +251,9 @@ def optiloops(self, context):
         # make things iterative here
 
 
-def main(context):
-    for ob in context.scene.objects:
-        print(ob)
+# def main(context):
+#     for ob in context.scene.objects:
+#         print(ob)
 
 
 class OptiloopsOperator(bpy.types.Operator):
@@ -297,17 +297,20 @@ class OptiloopsOperator(bpy.types.Operator):
         optiloops(self, context)
         return {'FINISHED'}
 
+def optiloops_panel(self, context):
+    layout = self.layout
+    layout.operator('mesh.optiloops')
+
+# Regustratuib
 
 def register():
     bpy.utils.register_class(OptiloopsOperator)
+    bpy.types.VIEW3D_PT_tools_meshedit.append(optiloops_panel)
 
 
 def unregister():
     bpy.utils.unregister_class(OptiloopsOperator)
-
+    bpy.types.VIEW3D_PT_tools_meshedit.remove(optiloops_panel)
 
 if __name__ == "__main__":
     register()
-
-    # test call
-    bpy.ops.mesh.optiloops()
