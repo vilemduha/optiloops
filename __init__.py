@@ -20,7 +20,7 @@ bl_info = {
     "name": "Optiloops",
     "author": "Vilem Duha",
     "version": (1, 0),
-    "blender": (2, 79, 0),
+    "blender": (2, 80, 0),
     "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
     "description": "Optimize meshes by removing loops with angle threshold",
     "warning": "",
@@ -31,6 +31,7 @@ bl_info = {
 import bpy, bmesh
 
 from bpy.props import (
+    IntProperty,
     BoolProperty,
     BoolVectorProperty,
     FloatProperty,
@@ -140,7 +141,10 @@ def optiloops(self, context):
     angle_threshold = self.angle_threshold / 180 * 3.1415926
 
     ob = bpy.context.active_object
+
     bpy.ops.object.mode_set(mode='EDIT')
+    # TODO: for iterations to work, we need to reconstruct selection after the operation.
+    #for main_iteration in range(0,self.iterations):
     bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
 
     bm = bmesh.from_edit_mesh(ob.data)
@@ -262,6 +266,13 @@ class OptiloopsOperator(bpy.types.Operator):
     bl_label = "Optimize loops"
     bl_options = {'REGISTER', 'UNDO'}
 
+    # iterations = IntProperty(
+    #     name="Iterations",
+    #     description="Number of iterations. Usefull only when Deleting is active",
+    #     min=1, max=10,
+    #     default=1,
+    # )
+
     angle_threshold = FloatProperty(
         name="Max angle",
         description="loops containing only lower angles will be removed",
@@ -297,7 +308,7 @@ class OptiloopsOperator(bpy.types.Operator):
         optiloops(self, context)
         return {'FINISHED'}
 
-def optiloops_panel(self, context):
+def optiloops_menu(self, context):
     layout = self.layout
     layout.operator('mesh.optiloops')
 
@@ -305,12 +316,15 @@ def optiloops_panel(self, context):
 
 def register():
     bpy.utils.register_class(OptiloopsOperator)
-    bpy.types.VIEW3D_PT_tools_meshedit.append(optiloops_panel)
+    bpy.types.VIEW3D_MT_edit_mesh_clean.append(optiloops_menu)
+    bpy.types.VIEW3D_MT_edit_mesh_delete.append(optiloops_menu)
 
 
 def unregister():
     bpy.utils.unregister_class(OptiloopsOperator)
-    bpy.types.VIEW3D_PT_tools_meshedit.remove(optiloops_panel)
+    bpy.types.VIEW3D_MT_edit_mesh_clean.remove(optiloops_menu)
+    bpy.types.VIEW3D_MT_edit_mesh_delete.remove(optiloops_menu)
+
 
 if __name__ == "__main__":
     register()
