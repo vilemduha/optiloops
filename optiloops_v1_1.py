@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Optiloops",
     "author": "Vilem Duha, reviewed by 1COD",
-    "version": (1, 1),
+    "version": (1, 1, 1),
     "blender": (2, 80, 0),
     "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
     "description": "Optimize meshes by removing loops with angle threshold",
@@ -88,18 +88,23 @@ def get_loop(self, bm, edge, angle_threshold):
 
     if self.keep_bevel: #bevel
         bv = bm.edges.layers.bevel_weight.verify()
-        for e in loop_edges:            
-            if e[bv] > 0:
-                loop_edges = []
-                return loop_edges
-
+        for e in loop_edges:
+            try: 
+                if e[bv] > 0:
+                    loop_edges = []
+                    return loop_edges
+            except ReferenceError:
+                pass
 
     if self.keep_crease: #crease
         cr = bm.edges.layers.crease.verify()
         for e in loop_edges:
-            if  e[cr] > 0:
-                loop_edges = []
-                return loop_edges                
+            try:             
+                if e[cr] > 0:
+                    loop_edges = []
+                    return loop_edges
+            except ReferenceError:
+                pass                    
 
     if self.influencing_loops:
         for e in loop_edges:
