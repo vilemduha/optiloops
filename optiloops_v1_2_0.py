@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Optiloops",
     "author": "Vilem Duha, reviewed by 1COD",
-    "version": (1, 1, 1),
+    "version": (1, 2, 0),
     "blender": (2, 80, 0),
     "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
     "description": "Optimize meshes by removing loops with angle threshold",
@@ -34,17 +34,19 @@ def get_neighbours(e):
     return neighbours
 
 
-def check_angles(edges, angle_threshold): # angle > trheshold
+def check_angles(self, edges, Min_angle_threshold, Max_angle_threshold): # angle > trheshold
     for e in edges:
         if len(e.link_faces) != 2:
             return False
         a = e.calc_face_angle()
-        if a > angle_threshold:
+        if Min_angle_threshold < a < Max_angle_threshold:
             return False
+
     return True
 
 
-def get_loop(self, bm, edge, angle_threshold):
+def get_loop(self, bm, edge, Min_angle_threshold, Max_angle_threshold):
+
     try: 
         verts2check = edge.verts[:]
     except ReferenceError:
@@ -57,7 +59,7 @@ def get_loop(self, bm, edge, angle_threshold):
     if len(edge.link_faces) < 2: # non manifold
         loop_edges = []
         return loop_edges
-    if not check_angles(loop_edges, angle_threshold):
+    if not check_angles(self, loop_edges, Min_angle_threshold, Max_angle_threshold):
         loop_edges = []
         return loop_edges
 
@@ -89,22 +91,22 @@ def get_loop(self, bm, edge, angle_threshold):
     if self.keep_bevel: #bevel
         bv = bm.edges.layers.bevel_weight.verify()
         for e in loop_edges:
-            try: 
+            if e.is_valid:
                 if e[bv] > 0:
                     loop_edges = []
                     return loop_edges
-            except ReferenceError:
-                pass
+            # except ReferenceError:
+                # pass
 
     if self.keep_crease: #crease
         cr = bm.edges.layers.crease.verify()
         for e in loop_edges:
-            try:             
+            if e.is_valid:            
                 if e[cr] > 0:
                     loop_edges = []
                     return loop_edges
-            except ReferenceError:
-                pass                    
+            # except ReferenceError:
+                # pass                    
 
     if self.influencing_loops:
         for e in loop_edges:
@@ -143,15 +145,22 @@ class OptiloopsOperator(bpy.types.Operator):
         description="If disabled, loops will only be selected",
         default=False,
     )
-    angle_threshold : FloatProperty(
-        name="Angle",
+    Min_angle_threshold : FloatProperty(
+        name="Min Angle",
         description="lower angles removed",
         min=-0.0001, max=90.0,
         default=-0.0001,
         precision=2,
         step=0.5,
     )
-
+    Max_angle_threshold : FloatProperty(
+        name="Max Angle",
+        description="Max angles removed",
+        min=0.0001, max=90.0,
+        default=90,
+        precision=2,
+        step=1,
+    )
     influencing_loops : BoolProperty(
         name="Keep Subsurf modif loops",
         default=False,
@@ -184,7 +193,8 @@ class OptiloopsOperator(bpy.types.Operator):
     )
 
     def execute(self, context):
-        angle_threshold = radians(self.angle_threshold)
+        Max_angle_threshold = radians(self.Max_angle_threshold)
+        Min_angle_threshold = radians(self.Min_angle_threshold)
         cao = bpy.context.active_object
         bpy.ops.mesh.select_mode(use_extend=False, use_expand=False, type='EDGE')
         bm = bmesh.from_edit_mesh(cao.data)
@@ -192,11 +202,16 @@ class OptiloopsOperator(bpy.types.Operator):
         bm.verts.ensure_lookup_table()
         sel={e for e in bm.edges if e.select}
         sel_copy=sel.copy()
-        bpy.ops.mesh.select_all(action='DESELECT')
+        #deselect
+        for f in bm.edges:f.select = False
+        for e in bm.edges:e.select = False
+        for v in bm.verts:v.select = False
+        bm.select_flush(False)
+        
         loops=[]
         while sel_copy:
             last=sel_copy.pop()
-            loop = get_loop(self, bm, last, angle_threshold)        
+            loop = get_loop(self, bm, last, Min_angle_threshold, Max_angle_threshold)        
 
             if self.full_loops_only: 
                 if len(loop)>len(set(loop)):
@@ -215,7 +230,7 @@ class OptiloopsOperator(bpy.types.Operator):
                 if e in sel_copy:
                     sel_copy.discard(e)
 
-        if self.dissolve:
+        if self.dissolve: 
             for loop in loops:
                 for e in loop:
                     try:
@@ -223,7 +238,8 @@ class OptiloopsOperator(bpy.types.Operator):
                     except ReferenceError:
                         continue 
             bpy.ops.mesh.dissolve_mode(use_verts=True)       
-        else:
+
+        else:                
             for loop in loops:
                 for e in loop:
                     try:
