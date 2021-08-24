@@ -1,6 +1,6 @@
 # optiloops
 
-[see the demo](https://youtu.be/evhIn_hlLoc)  
+[demo](https://youtu.be/evhIn_hlLoc)  
   
 Optiloops is a blender 3d addon for optimizing topology.  
   
