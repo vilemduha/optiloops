@@ -27,7 +27,7 @@ import bpy
 bl_info = {
     "name": "Optiloops",
     "author": "Vilem Duha, 1COD",
-    "version": (1, 3, 0),
+    "version": (1, 3, 1),
     "blender": (2, 93, 0),
     "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
     "description": "Optimize meshes by removing loops with angle threshold",
@@ -111,10 +111,6 @@ def to_keep(self, edge, bm):
 
 
 def deselect(bm):  # better than ops...
-    for f in bm.edges:
-        f.select = False
-    for e in bm.edges:
-        e.select = False
     for v in bm.verts:
         v.select = False
     bm.select_flush(False)
@@ -258,6 +254,8 @@ def optiloops(self, context):
     # select result geo to make shift+R possible
     if self.sel:
         [e.select_set(True) for e in sel_copy if e in bm.edges]
+
+    bmesh.update_edit_mesh(cao.data)  # missing????
 
 
 class OPTILOOPS_OT_operator(bpy.types.Operator):
