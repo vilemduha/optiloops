@@ -55,7 +55,7 @@ def get_loop(self, bm, edge0, sel):
 
             for e in v.link_edges:
                 # any is great
-                neighbour = any(f in estart.link_faces for f in e.link_faces)
+                neighbour = any((f in estart.link_faces) for f in e.link_faces)
                 if not neighbour:
                     if len(e.link_faces) < 2 or to_keep(self, e, bm):  # non man and keep
                         sel.discard(e)
@@ -244,7 +244,7 @@ def optiloops(self, context):
             bpy.ops.mesh.dissolve_edges()
             loops = []
             for l in skip_loops:
-                filter = any(e not in bm.edges for e in l.edges)
+                filter = any((e not in bm.edges) for e in l.edges)
                 if not filter and check_angles(l.edges, Min_angle, Max_angle):
                     loops.append(l)
 
