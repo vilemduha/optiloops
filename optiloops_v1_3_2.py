@@ -27,7 +27,7 @@ import bpy
 bl_info = {
     "name": "Optiloops",
     "author": "Vilem Duha, 1COD",
-    "version": (1, 3, 1),
+    "version": (1, 3, 2),
     "blender": (2, 93, 0),
     "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
     "description": "Optimize meshes by removing loops with angle threshold",
