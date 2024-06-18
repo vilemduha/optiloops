@@ -176,12 +176,15 @@ def optiloops(self, context):
         if len(es) == 0:
             thresok = False
 
-        if thresok:  # only manifold
+        if thresok:
             for e in es:
+                # only manifold
                 if len(e.link_faces) < 2:
                     thresok = False
+                # keep seams
                 if e.seam and self.keep_seams:
                     thresok = False
+                # keep bevels and creases
                 if (attr_bevel and self.keep_bevels and e[attr_bevel] > 0.0) or (
                     attr_crease and self.keep_creases and e[attr_crease] > 0.0
                 ):
