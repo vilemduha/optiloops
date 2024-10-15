@@ -19,8 +19,8 @@
 bl_info = {
     "name": "Optiloops",
     "author": "Vilem Duha",
-    "version": (1, 4),
-    "blender": (4, 1, 0),
+    "version": (1, 4, 0),
+    "blender": (4, 2, 0),
     "location": "View3D > Mesh > Mesh Tools panel > Optimize loops",
     "description": "Optimize meshes by removing loops with angle threshold",
     "warning": "",
@@ -266,9 +266,6 @@ def optiloops(self, context):
         # make things iterative here
 
 
-# def main(context):
-#     for ob in context.scene.objects:
-#         print(ob)
 
 
 class OptiloopsOperator(bpy.types.Operator):
